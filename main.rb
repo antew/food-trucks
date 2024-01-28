@@ -22,19 +22,31 @@ def city_star_data
     start_time = node.css('.tribe-event-date-start').text.split('@').last.strip
     end_time = node.css('.tribe-event-time').text.strip
 
-    { truck:,
+    { truck: truck,
       date: date ? Date.parse(date) : 'Unknown',
       time: "#{start_time} to #{end_time}" }
   end
 end
 
 def berthoud_brewing_data
-  JSON.load_file!('scrapes/berthoud_brewing.json').map { |v| v.transform_keys!(&:to_sym) }
+  JSON.load_file!('scrapes/berthoud_brewing.json')
+      .map { |v| v.transform_keys!(&:to_sym) }
+      .map { |v| v.merge({date: Date.parse(v[:date])}) }
 end
 
 def build_schedules
-  [{ location: 'City Star Brewing', calendar: city_star_data },
-   { location: 'Berthoud Brewing', calendar: berthoud_brewing_data }]
+  [{ location: 'City Star Brewing', calendar: filter_by_date(city_star_data) },
+   { location: 'Berthoud Brewing', calendar: filter_by_date(berthoud_brewing_data) }]
+end
+
+def filter_by_date(schedule)
+  schedule.select do |event|
+    if event[:date].is_a?(Date)
+      event[:date] >= Date.today
+    else
+      true
+    end
+  end
 end
 
 def build_html(schedules)
