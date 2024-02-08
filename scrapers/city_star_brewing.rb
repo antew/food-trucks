@@ -22,17 +22,33 @@ module CityStarBrewing
 
     doc = Nokogiri::HTML(File.read(file_path))
 
-    nodes = doc.css('.tribe-events-calendar-list__event-header')
+    script_tags = doc.xpath('//script[@type="application/ld+json"]')
+    event_data = []
 
-    nodes.map do |node|
-      truck = node.at('.tribe-events-calendar-list__event-title').text.strip
-      date = node.css('.tribe-events-calendar-list__event-datetime').attribute('datetime').value
-      start_time = node.css('.tribe-event-date-start').text.split('@').last.strip
-      end_time = node.css('.tribe-event-time').text.strip
-
-      { truck:,
-        date: date ? Date.parse(date) : 'Unknown',
-        time: "#{start_time} to #{end_time}" }
+    script_tags.each do |tag|
+      begin
+        parsed_data = JSON.parse(tag.content)
+        if parsed_data.is_a?(Array)
+          parsed_data.each do |item|
+            event_data << item if item["@type"] == "Event"
+          end
+        end
+      rescue JSON::ParserError => e
+        puts "Json parsing error, skipping #{tag.inspect}"
+        next
+      end
     end
+
+    event_data.map { |e| simplify_event(e) }
+  end
+
+  def self.simplify_event(event)
+    start_time = DateTime.parse(event["startDate"])
+    end_time = DateTime.parse(event["endDate"])
+    {
+      date: start_time.strftime("%Y-%m-%d"),
+      truck: event["name"],
+      time: "#{start_time.strftime('%l%p').strip}-#{end_time.strftime('%l%p').strip}"
+    }
   end
 end
