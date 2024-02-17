@@ -38,7 +38,7 @@
         </thead>
         <tbody>
           <% schedule[:calendar].each do |item| %>
-            <tr data-dt="<%= item[:date] %>">
+            <tr data-dt="<%= item[:date] %>T08:00">
               <td class="dt"><%= item[:date] %></td>
               <td><%= item[:truck] %></td>
               <td><%= item[:time] %></td>
@@ -77,11 +77,13 @@
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
 
+
         filterBy((tr) => {
           if (element.checked) return true;
 
           var dateString = tr.getAttribute("data-dt");
           var date = new Date(dateString);
+          console.log("Start", startOfToday, "Date", date, "Truck", tr.textContent)
 
           return date <= inSevenDays && date >= startOfToday
         });
