@@ -74,6 +74,8 @@
         let inSevenDays = new Date();
         inSevenDays.setHours(0, 0, 0, 0);
         inSevenDays.setDate(inSevenDays.getDate() + 7);
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
 
         filterBy((tr) => {
           if (element.checked) return true;
@@ -81,7 +83,7 @@
           var dateString = tr.getAttribute("data-dt");
           var date = new Date(dateString);
 
-          return date <= inSevenDays;
+          return date <= inSevenDays && date >= startOfToday
         });
       }
 
